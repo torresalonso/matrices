@@ -2,6 +2,7 @@
 Este programa utiliza sólo tipo de dato long double para mostrar su funcionamiento en casos extremos.*/
 #include<iostream>
 #include "matrices.h"
+#include<math.h>
 
 using namespace std;
 
@@ -14,12 +15,11 @@ int main(){
 
   cout << "n:" << '\n';
   cin>>n;
-  cout<<"ortonormal? S/n: \n";
-  cin>>normalizar;
 
   //matrices cuadradas
-  matriz_cuadrada A;
-  A.dimension=n;
+  matriz_cuadrada A, aux;
+  A.dimension = n;
+  aux.dimension = n;
 
   //leer la matriz
   for(i = 0; i < n; i++)
@@ -28,19 +28,79 @@ int main(){
       cin >> A.matriz[i][j];
     }
 
-ClearScreen();
+  ClearScreen();
 
-  matriz_cuadrada Q;
-  Q=gram_schmidt(A);
-
-  //imprimir matriz ortogonalizada
-  cout<<"\nMatriz ortonormal\n";
+  cout<<"\n";
+  //-Imprimir A
+  cout << "--A:\n";
   for(i = 0; i < n; i++){
     for(j = 0; j < n; j++)
-      cout << Q.matriz[i][j] << "\t";
-    cout << "\n";
+      cout << A.matriz[i][j] << "\t";
+    cout<<"\n";
   }
 
+  cout<<"\n";
+  //-transpuesta
+  cout<<"--transpuesta\n";
+  aux = matriz_transpuesta(A);
+  for(i = 0; i < n; i++){
+    for(j = 0; j < n; j++)
+      cout<<aux.matriz[i][j]<<"\t";
+    cout<<"\n";
+  }
+
+  cout<<"\n";
+  //-producto
+  cout<<"--producto A²\n";
+  aux = producto_matrices(A, A);
+  for(i = 0; i < n; i++){
+    for(j = 0; j < n; j++)
+      cout<<aux.matriz[i][j]<<"\t";
+    cout<<"\n";
+  }
+
+  cout<<"\n";
+  //-ortogonal Q
+  cout<<"--Ortogonalizar las columnas con gram_schmidt\n";
+  matriz_cuadrada Q;
+  Q.dimension = A.dimension;
+  cout<<"ortonormal? S/n: \n";
+  cin >> normalizar;
+  if(normalizar == 's' || normalizar == 'S')
+    Q = QR_getQ(A, 1);
+  else
+    Q = QR_getQ(A, 0);
+
+ClearScreen();
+
+  cout<<"--Q:\n";
+  for(i = 0; i < n; i++){
+    for(j = 0; j < n; j++)
+      cout<<Q.matriz[i][j]<<"\t";
+    cout<<"\n";
+  }
+  cout<<"\n";
+
+  matriz_cuadrada R;
+  R.dimension = A.dimension;
+  R = QR_getR(A, Q);
+
+  cout<<"--R:\n";
+  for(i = 0; i < n; i++){
+    for(j = 0; j < n; j++)
+      cout<<R.matriz[i][j]<<"\t";
+    cout<<"\n";
+  }
+
+  cout<<"\n";
+  //-Algoritmo QR
+  cout<<"--Algoritmo QR\n";
+  A = QR_eigenvalores(A, 50);
+  for(i = 0; i < n; i++){
+    for(j = 0; j < n; j++)
+      cout << A.matriz[i][j]<<"\t";
+    cout<<"\n";
+  }
   return 0;
 }
 

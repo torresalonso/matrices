@@ -1,10 +1,26 @@
+#include <math.h>
 /*Librería para trabajo con matrices.*/
+typedef struct{int reng; int cols; double matriz[100][100];} matriz_mn;
 typedef struct{int dimension; double matriz[100][100];} matriz_cuadrada;
 typedef struct{int dimension; double componentes[100];} vector;
 
 double prodint(vector u, vector v);
 vector normalizar_vector(vector v);
-matriz_cuadrada gram_schmidt(matriz_cuadrada A, bool unitarios = 1);
+
+matriz_mn matriz_transpuesta(matriz_mn A);
+matriz_cuadrada matriz_transpuesta(matriz_cuadrada A);
+
+matriz_mn reiniciar_matriz(matriz_mn A);
+matriz_cuadrada  reiniciar_matriz(matriz_cuadrada A);
+matriz_mn producto_matrices(matriz_mn A, matriz_mn B);
+matriz_cuadrada producto_matrices(matriz_cuadrada A, matriz_cuadrada B);
+
+matriz_cuadrada QR_getQ(matriz_cuadrada A, bool unitarios = 1);
+matriz_cuadrada QR_getR(matriz_cuadrada A, matriz_cuadrada Q);
+
+//Eigenvalores
+matriz_cuadrada QR_eigenvalores(matriz_cuadrada A);
+//---------------------------------------------Definición de funciones
 
 double prodint(vector u, vector v){
   int i=0;
@@ -22,7 +38,81 @@ vector normalizar_vector(vector v){
   return vector_normalizado;
 }
 
-matriz_cuadrada gram_schmidt(matriz_cuadrada A, bool unitarios){
+matriz_mn matriz_transpuesta(matriz_mn A){
+  int i = 0, j = 0;
+  matriz_mn transpuesta;
+  transpuesta.reng = A.cols;
+  transpuesta.cols = A.reng;
+
+  for(i = 0; i < transpuesta.reng; i++)
+    for(j = 0; j < transpuesta.cols; j++)
+      transpuesta.matriz[i][j] = A.matriz[j][i];
+
+  return transpuesta;
+}
+
+matriz_cuadrada matriz_transpuesta(matriz_cuadrada A){
+  int i = 0, j = 0;
+  matriz_cuadrada transpuesta;
+  transpuesta.dimension = A.dimension;
+
+  for(i = 0; i < transpuesta.dimension; i++)
+    for(j = 0; j < transpuesta.dimension; j++)
+      transpuesta.matriz[i][j] = A.matriz[j][i];
+
+  return transpuesta;
+}
+
+//Producto de matrices
+matriz_mn reiniciar_matriz(matriz_mn A){
+  for (int i = 0; i < A.reng; i++)
+    for (int j = 0; j < A.cols; j++)
+      A.matriz[i][j] = 0;
+  return A;
+
+}
+matriz_cuadrada  reiniciar_matriz(matriz_cuadrada A){
+  for (int i = 0; i < A.dimension; i++)
+    for (int j = 0; j < A.dimension; j++)
+      A.matriz[i][j] = 0;
+  return A;
+}
+
+matriz_mn producto_matrices(matriz_mn A, matriz_mn B){
+  int i = 0, j = 0, k = 0;
+  matriz_mn producto;
+  producto.reng = A.reng;
+  producto.cols = A.cols;
+
+  producto = reiniciar_matriz(producto);
+
+  for(i = 0; i < producto.reng; i++)
+    for(j = 0; j < producto.cols; j++){
+      //copiar el renglón i-ésimo de A
+      for(k = 0; k < producto.cols; k++)
+        producto.matriz[i][j] += A.matriz[i][k]*B.matriz[k][j];
+    }
+  return producto;
+}
+
+matriz_cuadrada producto_matrices(matriz_cuadrada A, matriz_cuadrada B){
+  int i = 0, j = 0, k = 0;
+  matriz_cuadrada producto;
+  producto.dimension = A.dimension;
+  producto = reiniciar_matriz(producto);
+
+  for(i = 0; i < producto.dimension; i++)
+    for(j = 0; j < producto.dimension; j++){
+      //copiar el renglón i-ésimo de A
+      for(k = 0; k < producto.dimension; k++)
+        producto.matriz[i][j] += A.matriz[i][k]*B.matriz[k][j];
+    }
+
+  return producto;
+}
+
+//Matrices ortogonales.
+matriz_cuadrada QR_getQ(matriz_cuadrada A, bool unitarios){
   int n=0, i=0,j=0, k=0, l=0, flag=0;
   //---------------gram-schmidt---------------
   //iniciar la matriz ortogonal y el vector auxiliar
@@ -80,4 +170,22 @@ matriz_cuadrada gram_schmidt(matriz_cuadrada A, bool unitarios){
 
   }
   return Q;
+}
+
+matriz_cuadrada QR_getR(matriz_cuadrada A, matriz_cuadrada Q){
+  matriz_cuadrada R;
+  R.dimension = A.dimension;
+
+  R = producto_matrices(matriz_transpuesta(Q), A);
+  return R;
+}
+
+matriz_cuadrada QR_eigenvalores(matriz_cuadrada A, int iteraciones){
+  int i=0;
+  matriz_cuadrada Ak = A, Q;
+  for(i=0;i<iteraciones;i++){
+    Q = QR_getQ(Ak, 1);
+    Ak = producto_matrices(QR_getR(Ak,Q),Q);
+  }
+  return Ak;
 }
